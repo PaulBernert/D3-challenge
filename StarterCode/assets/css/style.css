@@ -12,6 +12,8 @@ html {
 body {
   /* Padding bottom by footer height */
   padding-bottom: 80px;
+  margin: 0px;
+  overflow: hidden;
 }
 
 #footer {
@@ -29,3 +31,24 @@ body {
   margin: 0;
   font-size: 16px;
 }
+
+circle {
+  fill: steelblue;
+  opacity: 0.85;
+}
+
+text {
+  font-size: 1em;
+}
+
+.axis-label {
+  font-size: 2em;
+}
+
+.title {
+  font-size: 2.5em;
+}
+
+/* #menus select {
+  font-size: 1.25em;
+} */
