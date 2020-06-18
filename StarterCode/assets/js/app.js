@@ -1,30 +1,28 @@
-// const dropDownMenu = (selection, props) => {
-//   const {
-//     options
-//   } = props;
-//   let select = selection.selectAll('select').data([null]);
-//   select = select.enter().append('select').merge(select);
-//
-//   const option = select.selectAll('option').data(options);
-//   option.enter().append('option')
-//     .merge(option)
-//       .attr('value', d => d)
-//       .text(d => d);
-// };
-//
-// d3.select('#menus').call(dropDownMenu, {
-//   options: ['A','B','C']
-// });
+const dropDownMenu = (selection, props) => {
+  const {
+    options,
+    onOptionClicked
+  } = props;
+  let select = selection.selectAll('select').data([null]);
+  select = select.enter().append('select')
+    .merge(select)
+      .on('change', function() {
+        onOptionClicked(this.value)
+      });
 
-const svg = d3.select('svg');
+  const option = select.selectAll('option').data(options);
+  option.enter().append('option')
+    .merge(option)
+      .attr('value', d => d)
+      .text(d => d);
+};
 
-const width = +svg.attr('width');
-const height = +svg.attr('height');
+const scatterPlot = (selection, props) => {
+  const {
+    title
+  } = props;
 
-const render = data => {
-  const title = 'Smoking vs Lifespan';
-
-  const xValue = d => d.age;
+  const xValue = d => d[xColumn];
   const xAxisLabel = 'Lifespan';
 
   const yValue = d => d.smokes;
@@ -96,7 +94,31 @@ const render = data => {
     .text(title);
 };
 
-d3.csv('/assets/data/data.csv').then(data => {
+const svg = d3.select('svg');
+const width = +svg.attr('width');
+const height = +svg.attr('height');
+
+let data;
+let xColumn;
+
+const onXColumnClicked = column => {
+  xColumn = column;
+  render();
+};
+
+const render = () => {
+  d3.select('#menus').call(dropDownMenu, {
+    options: data.columns,
+    onOptionClicked: onXColumnClicked
+  });
+
+  svg.call(scatterPlot, {
+    title: 'Placeholder'
+  });
+};
+
+d3.csv('/assets/data/data.csv').then(loadedData => {
+  data = loadedData;
   data.forEach(d => {
     d.id = +d.id;
     d.age = +d.age;
@@ -115,6 +137,5 @@ d3.csv('/assets/data/data.csv').then(data => {
     d.smokesHigh = +d.smokesHigh;
     d.smokesLow = +d.smokesLow;
 });
-  render(data);
-  console.log(data)
+  render();
 });
