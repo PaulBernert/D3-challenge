@@ -19,18 +19,18 @@ const dropDownMenu = (selection, props) => {
 
 const scatterPlot = (selection, props) => {
   const {
-    title
+    xValue,
+    xAxisLabel,
+    yValue,
+    yAxisLabel,
+    circleRadius,
+    margin,
+    width,
+    height,
+    data
   } = props;
 
-  const xValue = d => d[xColumn];
-  const xAxisLabel = 'Lifespan';
 
-  const yValue = d => d.smokes;
-  const yAxisLabel = 'Number of Cigarettes';
-
-  const circleRadius = 9;
-
-  const margin = { top: 50, right: 40, bottom: 40, left: 100 };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
 
@@ -48,50 +48,56 @@ const scatterPlot = (selection, props) => {
     .tickSize(-innerWidth)
     .tickPadding(5);
 
-  const g = svg.append('g')
-    .attr('transform',`translate(${margin.left},${margin.top})`);
+  const g = selection.selectAll('.container').data([null]);
+  const gEnter = g.enter().append('g')
+    .attr('class', 'container');
+  gEnter.merge(g).attr('transform',`translate(${margin.left},${margin.top})`);
 
   const xAxis = d3.axisBottom(xScale)
     .tickSize(-innerHeight)
     .tickPadding(5);
 
-  const yAxisG = g.append('g').call(yAxis);
-  yAxisG.selectAll('.domain').remove();
+  const yAxisG = g.select('.y-Axis');
+  const yAxisGEnter = gEnter.append('g')
+    .attr('class','y-Axis');
 
-  yAxisG.append('text')
-    .attr('class', 'axis-label')
-    .attr('x', -innerHeight / 2)
-    .attr('y', -20)
-    .attr('fill', 'black')
-    .attr('transform', `rotate(-90)`)
-    .attr('text-anchor', 'middle')
-    .text(yAxisLabel);
+  yAxisG.merge(yAxisGEnter)
+      .call(yAxis).selectAll('.domain').remove();
 
-  const xAxisG = g.append('g').call(xAxis)
-    .attr('transform', `translate(0,${innerHeight})`);
+  const yAxisLabelText = yAxisGEnter
+    .append('text')
+      .attr('class', 'axis-label')
+      .attr('y', -20)
+      .attr('fill', 'black')
+      .attr('transform', `rotate(-90)`)
+      .attr('text-anchor', 'middle')
+    .merge(yAxisG.select('.axis-label'))
+      .attr('x', -innerHeight / 2)
+      .text(yAxisLabel);
 
-  xAxisG.select('.domain').remove();
+  const xAxisG = g.select('.x-Axis');
+  const xAxisGEnter = gEnter.append('g')
+    .attr('class','x-Axis');
 
-  xAxisG.append('text')
-    .attr('class', 'axis-label')
+  xAxisG.merge(xAxisGEnter)
+    .attr('transform', `translate(0,${innerHeight})`)
+    .call(xAxis).selectAll('.domain').remove();
+
+  const xAxisLabelText = xAxisGEnter
+    .append('text')
+      .attr('class', 'axis-label')
+      .attr('y', 30)
+      .attr('fill', 'black')
+    .merge(xAxisG.select('.axis-label'))
     .attr('x', innerWidth / 2)
-    .attr('y', 30)
-    .attr('fill', 'black')
-    .attr('text-anchor', 'middle')
-    .text(xAxisLabel);
+      .text(xAxisLabel);
 
-  g.selectAll('circle').data(data)
-    .enter().append('circle')
-      .attr('cy', d => yScale(yValue(d)))
-      .attr('cx', d => xScale(xValue(d)))
-      .attr('r', circleRadius);
-
-  g.append('text')
-    .attr('class','title')
-    .attr('x', innerWidth / 2)
-    .attr('y',-10)
-    .attr('text-anchor', 'middle')
-    .text(title);
+  const circles = g.merge(gEnter).selectAll('circle').data(data);
+  circles.enter().append('circle').merge(circles)
+    .transition().duration(750)
+    .attr('cy', d => yScale(yValue(d)))
+    .attr('cx', d => xScale(xValue(d)))
+    .attr('r', circleRadius);
 };
 
 const svg = d3.select('svg');
@@ -100,20 +106,39 @@ const height = +svg.attr('height');
 
 let data;
 let xColumn;
+let yColumn;
 
 const onXColumnClicked = column => {
   xColumn = column;
   render();
 };
 
+const onYColumnClicked = column => {
+  yColumn = column;
+  render();
+};
+
 const render = () => {
-  d3.select('#menus').call(dropDownMenu, {
+  d3.select('#xMenu').call(dropDownMenu, {
     options: data.columns,
     onOptionClicked: onXColumnClicked
   });
 
+  d3.select('#yMenu').call(dropDownMenu, {
+    options: data.columns,
+    onOptionClicked: onYColumnClicked
+  });
+
   svg.call(scatterPlot, {
-    title: 'Placeholder'
+    xValue: d => d[xColumn],
+    xAxisLabel: xColumn,
+    yValue: d => d[yColumn],
+    yAxisLabel: yColumn,
+    circleRadius: 9,
+    margin: { top: 50, right: 40, bottom: 40, left: 100 },
+    width,
+    height,
+    data
   });
 };
 
@@ -137,5 +162,7 @@ d3.csv('/assets/data/data.csv').then(loadedData => {
     d.smokesHigh = +d.smokesHigh;
     d.smokesLow = +d.smokesLow;
 });
+  xColumn = data.columns[0];
+  yColumn = data.columns[0];
   render();
 });
