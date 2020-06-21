@@ -27,9 +27,9 @@ const scatterPlot = (selection, props) => {
     margin,
     width,
     height,
-    data
+    data,
+    svg
   } = props;
-
 
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -92,12 +92,15 @@ const scatterPlot = (selection, props) => {
     .attr('x', innerWidth / 2)
       .text(xAxisLabel);
 
-  const circles = g.merge(gEnter).selectAll('circle').data(data);
+  const circles = g.merge(gEnter).selectAll('circle').data(data)
+    .on("mouseover", mouseOver )
+    .on("mouseleave", mouseLeave );
+
   circles.enter().append('circle').merge(circles)
     .transition().duration(750)
     .attr('cy', d => yScale(yValue(d)))
     .attr('cx', d => xScale(xValue(d)))
-    .attr('r', circleRadius);
+    .attr('r', circleRadius)
 };
 
 const svg = d3.select('svg');
@@ -107,6 +110,25 @@ const height = +svg.attr('height');
 let data;
 let xColumn;
 let yColumn;
+
+var tool_tip = d3.tip()
+      .attr("class", "d3-tip")
+      .offset([-8, 0])
+      .html(function(d) { return `${d['state']} | ${yColumn}:${d[yColumn]} | ${xColumn}:${d[xColumn]}`;});
+
+var mouseOver = function(d) {
+  tool_tip
+    .attr('opacity',1)
+  console.log(`${d['state']} | ${yColumn}:${d[yColumn]} | ${xColumn}:${d[xColumn]}`)
+  render();
+};
+
+var mouseLeave = function(d) {
+  tool_tip
+    .attr('opacity',0)
+  console.log("mouseLeave")
+  render();
+};
 
 const onXColumnClicked = column => {
   xColumn = column;
@@ -135,7 +157,8 @@ const render = () => {
     yValue: d => d[yColumn],
     yAxisLabel: yColumn,
     circleRadius: 9,
-    margin: { top: 50, right: 40, bottom: 40, left: 100 },
+    margin: { top: 40, right: 20, bottom: 40, left: 100 },
+    tool_tip,
     width,
     height,
     data
