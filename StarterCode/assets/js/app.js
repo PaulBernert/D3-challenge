@@ -28,7 +28,9 @@ const scatterPlot = (selection, props) => {
     width,
     height,
     data,
-    svg
+    svg,
+    tool_tip,
+    mouseOver
   } = props;
 
   const innerWidth = width - margin.left - margin.right;
@@ -52,6 +54,8 @@ const scatterPlot = (selection, props) => {
   const gEnter = g.enter().append('g')
     .attr('class', 'container');
   gEnter.merge(g).attr('transform',`translate(${margin.left},${margin.top})`);
+  gEnter.append('title')
+    .html('so close..');
 
   const xAxis = d3.axisBottom(xScale)
     .tickSize(-innerHeight)
@@ -79,8 +83,9 @@ const scatterPlot = (selection, props) => {
   const xAxisGEnter = gEnter.append('g')
     .attr('class','x-Axis');
 
-  xAxisG.merge(xAxisGEnter)
-    .attr('transform', `translate(0,${innerHeight})`)
+  xAxisG
+    .merge(xAxisGEnter)
+      .attr('transform', `translate(0,${innerHeight})`)
     .call(xAxis).selectAll('.domain').remove();
 
   const xAxisLabelText = xAxisGEnter
@@ -92,40 +97,52 @@ const scatterPlot = (selection, props) => {
     .attr('x', innerWidth / 2)
       .text(xAxisLabel);
 
-  const circles = g.merge(gEnter).selectAll('circle').data(data)
+  const circles = g
+    .merge(gEnter)
+    .selectAll('circle')
+    .data(data)
     .on("mouseover", mouseOver )
     .on("mouseleave", mouseLeave );
 
-  circles.enter().append('circle').merge(circles)
+  circles
+    .enter()
+    .append('circle')
+    .merge(circles)
     .transition().duration(750)
-    .attr('cy', d => yScale(yValue(d)))
-    .attr('cx', d => xScale(xValue(d)))
-    .attr('r', circleRadius)
+      .attr('cy', d => yScale(yValue(d)))
+      .attr('cx', d => xScale(xValue(d)))
+      .attr('r', circleRadius)
 };
 
 const svg = d3.select('svg');
 const width = +svg.attr('width');
 const height = +svg.attr('height');
+const svgContainer = svg.append('svg')
 
 let data;
 let xColumn;
 let yColumn;
 
-var tool_tip = d3.tip()
-      .attr("class", "d3-tip")
-      .offset([-8, 0])
-      .html(function(d) { return `${d['state']} | ${yColumn}:${d[yColumn]} | ${xColumn}:${d[xColumn]}`;});
+var tool_tip = svgContainer
+  .append('div')
+  .attr('class', 'tooltip')
+  .style("background-color", "white")
+  .style("border", "solid")
+  .style("border-width", "1px")
+  .style("border-radius", "5px")
+  .style("padding", "10px");
 
 var mouseOver = function(d) {
   tool_tip
-    .attr('opacity',1)
-  console.log(`${d['state']} | ${yColumn}:${d[yColumn]} | ${xColumn}:${d[xColumn]}`)
+    .html(`${d['state']} | ${yColumn}: ${d[yColumn]} | ${xColumn}: ${d[xColumn]}`)
+    .style('opacity',1)
+  console.log(`${d['state']} | ${yColumn}: ${d[yColumn]} | ${xColumn}: ${d[xColumn]}`)
   render();
 };
 
 var mouseLeave = function(d) {
   tool_tip
-    .attr('opacity',0)
+    .style('opacity',0)
   console.log("mouseLeave")
   render();
 };
