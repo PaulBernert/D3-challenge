@@ -29,8 +29,7 @@ const scatterPlot = (selection, props) => {
     height,
     data,
     svg,
-    tool_tip,
-    mouseOver
+    toolTip
   } = props;
 
   const innerWidth = width - margin.left - margin.right;
@@ -54,8 +53,6 @@ const scatterPlot = (selection, props) => {
   const gEnter = g.enter().append('g')
     .attr('class', 'container');
   gEnter.merge(g).attr('transform',`translate(${margin.left},${margin.top})`);
-  gEnter.append('title')
-    .html('so close..');
 
   const xAxis = d3.axisBottom(xScale)
     .tickSize(-innerHeight)
@@ -101,8 +98,8 @@ const scatterPlot = (selection, props) => {
     .merge(gEnter)
     .selectAll('circle')
     .data(data)
-    .on("mouseover", mouseOver )
-    .on("mouseleave", mouseLeave );
+    .on("mouseover", toolTip.show )
+    .on("mouseout", toolTip.hide );
 
   circles
     .enter()
@@ -111,41 +108,37 @@ const scatterPlot = (selection, props) => {
     .transition().duration(750)
       .attr('cy', d => yScale(yValue(d)))
       .attr('cx', d => xScale(xValue(d)))
-      .attr('r', circleRadius)
+      .attr('r', circleRadius);
+
+  const circleText = g
+    .merge(gEnter)
+    .selectAll('text')
+    .data(data)
+    .enter()
+    .append('text')
+      .attr('cy', d => (yValue(d)))
+      .attr('cx', d => (xValue(d)))
+      //.attr("x",(d, i) => d[0] + 5)
+      //.attr("y",(d, i) => h - d[1])
+      .text(d=> d.abbr);
 };
 
 const svg = d3.select('svg');
 const width = +svg.attr('width');
 const height = +svg.attr('height');
-const svgContainer = svg.append('svg')
 
 let data;
 let xColumn;
 let yColumn;
 
-var tool_tip = svgContainer
-  .append('div')
-  .attr('class', 'tooltip')
-  .style("background-color", "white")
-  .style("border", "solid")
-  .style("border-width", "1px")
-  .style("border-radius", "5px")
-  .style("padding", "10px");
+const toolTip = d3.tip()
+  .attr("class", "d3-tip")
+  .offset([80, -60])
+  .html(function(d) {
+    return (`${d.state} </br> ${yColumn}: ${d[yColumn]} </br> ${xColumn}: ${d[xColumn]}`);
+  });
 
-var mouseOver = function(d) {
-  tool_tip
-    .html(`${d['state']} | ${yColumn}: ${d[yColumn]} | ${xColumn}: ${d[xColumn]}`)
-    .style('opacity',1)
-  console.log(`${d['state']} | ${yColumn}: ${d[yColumn]} | ${xColumn}: ${d[xColumn]}`)
-  render();
-};
-
-var mouseLeave = function(d) {
-  tool_tip
-    .style('opacity',0)
-  console.log("mouseLeave")
-  render();
-};
+svg.call(toolTip);
 
 const onXColumnClicked = column => {
   xColumn = column;
@@ -175,10 +168,10 @@ const render = () => {
     yAxisLabel: yColumn,
     circleRadius: 9,
     margin: { top: 40, right: 20, bottom: 40, left: 100 },
-    tool_tip,
     width,
     height,
-    data
+    data,
+    toolTip
   });
 };
 
@@ -202,7 +195,12 @@ d3.csv('/assets/data/data.csv').then(loadedData => {
     d.smokesHigh = +d.smokesHigh;
     d.smokesLow = +d.smokesLow;
 });
-  xColumn = data.columns[0];
-  yColumn = data.columns[0];
+  xColumn = data.columns[12];
+  yColumn = data.columns[15];
+  xAxisLabelText = data.columns[12];
+  yAxisLabelText = data.columns[15];
+  //xAxisGEnter = data.columns[12];
+  //xAxisG = data.columns[12];
+  
   render();
 });
