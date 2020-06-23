@@ -109,18 +109,6 @@ const scatterPlot = (selection, props) => {
       .attr('cy', d => yScale(yValue(d)))
       .attr('cx', d => xScale(xValue(d)))
       .attr('r', circleRadius);
-
-  const circleText = g
-    .merge(gEnter)
-    .selectAll('text')
-    .data(data)
-    .enter()
-    .append('text')
-      .attr('cy', d => (yValue(d)))
-      .attr('cx', d => (xValue(d)))
-      //.attr("x",(d, i) => d[0] + 5)
-      //.attr("y",(d, i) => h - d[1])
-      .text(d=> d.abbr);
 };
 
 const svg = d3.select('svg');
@@ -133,7 +121,7 @@ let yColumn;
 
 const toolTip = d3.tip()
   .attr("class", "d3-tip")
-  .offset([80, -60])
+  .offset([-5, 0])
   .html(function(d) {
     return (`${d.state} </br> ${yColumn}: ${d[yColumn]} </br> ${xColumn}: ${d[xColumn]}`);
   });
@@ -195,12 +183,7 @@ d3.csv('/assets/data/data.csv').then(loadedData => {
     d.smokesHigh = +d.smokesHigh;
     d.smokesLow = +d.smokesLow;
 });
-  xColumn = data.columns[12];
-  yColumn = data.columns[15];
-  xAxisLabelText = data.columns[12];
-  yAxisLabelText = data.columns[15];
-  //xAxisGEnter = data.columns[12];
-  //xAxisG = data.columns[12];
-  
+  xColumn = data.columns[0];
+  yColumn = data.columns[0];
   render();
 });
