@@ -163,7 +163,7 @@ const render = () => {
   });
 };
 
-d3.csv('../data/data.csv').then(loadedData => {
+d3.csv('/assets/data/data.csv').then(loadedData => {
   data = loadedData;
   data.forEach(d => {
     d.id = +d.id;
